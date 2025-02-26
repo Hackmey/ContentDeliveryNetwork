@@ -8,7 +8,7 @@ import (
 
 
 
-const contentDir="./content"
+const contentDir="./assets"
 
 func main(){
 	http.HandleFunc("/",serveFile)
@@ -18,5 +18,6 @@ func main(){
 
 func serveFile(w http.ResponseWriter, r *http.Request){
 	filePath := contentDir + r.URL.Path
+	w.Header().Set("Cache-Control", "public, max-age=3600") // ✅ Allows caching
 	http.ServeFile(w,r,filePath)
 }

@@ -8,13 +8,15 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./content:/app/content
+      - ./go/server/content:/app/content
+      - ./go/server/assets:/app/assets  # ✅ Correct path to content
 
   nginx:
     image: nginx:latest
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/default.conf:/etc/nginx/conf.d/default.conf  # ✅ Correct location
     depends_on:
       - cdn
