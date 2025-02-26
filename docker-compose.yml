@@ -1,0 +1,19 @@
+# version: "3.8"
+services:
+  cdn:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./content:/app/content
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - cdn
