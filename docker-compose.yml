@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    image: cdn_server
     ports:
       - "8000:8000"
     volumes:
