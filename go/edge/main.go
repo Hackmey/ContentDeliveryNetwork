@@ -58,7 +58,7 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := io.ReadAll(resp.Body)
 	content = string(body)
-	w.Write([]byte(content))
+	w.Write([]byte(content + " (from origin)"))
 
 	// Store in cache
 	redisClient.Set(ctx, file, content, 10*time.Minute)

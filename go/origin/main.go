@@ -21,6 +21,6 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	file := vars["file"]
 
 	// Simulate content based on file name
-	content := fmt.Sprintf("Original content of file: %s from ORIGIN", file)
+	content := fmt.Sprintf("Original content of file: %s", file)
 	w.Write([]byte(content))
 }
