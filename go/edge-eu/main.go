@@ -27,7 +27,7 @@ func main() {
 
 	server := &http.Server{
 		Handler:      r,
-		Addr:         ":8080",
+		Addr:         ":8090",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -49,7 +49,7 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Cache Miss: Fetch from Origin
-	resp, err := http.Get("http://localhost:9090/" + file) // Using localhost for testing
+	resp, err := http.Get("http://localhost:9090/content/" + file) // Using localhost for testing
 	if err != nil {
 		http.Error(w, "Origin Server Down", http.StatusInternalServerError)
 		return
