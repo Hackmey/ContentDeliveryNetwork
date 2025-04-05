@@ -44,12 +44,12 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	// Check Redis Cache
 	content, err := redisClient.Get(ctx, file).Result()
 	if err == nil {
-		w.Write([]byte(content + " (from cache)"))
+		w.Write([]byte(content + " (from US cache)"))
 		return
 	}
 
 	// Cache Miss: Fetch from Origin
-	resp, err := http.Get("https://preferably-oriented-cod.ngrok-free.app/" + file) // Using localhost for testing
+	resp, err := http.Get("http://localhost:9090/" + file) // Using localhost for testing
 	if err != nil {
 		http.Error(w, "Origin Server Down", http.StatusInternalServerError)
 		return

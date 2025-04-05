@@ -1,0 +1,33 @@
+# Use Golang as base image
+FROM golang:1.20 as builder
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy go modules and install dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the Go application
+RUN go build -o cdn-edge
+
+# Use a lightweight image to run the binary
+FROM alpine:latest
+
+# Set working directory
+WORKDIR /root/
+
+# Copy the compiled binary from builder
+COPY --from=builder /app/cdn-edge .
+
+# Install curl for debugging
+RUN apk add --no-cache curl
+
+# Expose port 8080 for the server
+EXPOSE 8080
+
+# Run the server
+CMD ["./cdn-edge"]
