@@ -18,7 +18,7 @@ var redisClient *redis.Client
 func main() {
 	// Initialize Redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: "redis://default:uElJcVUUNQNVZroVszeZsdPxuydgDDMv@centerbeam.proxy.rlwy.net:46606", // Ensure Redis is running locally
+		Addr: "redis.railway.internal:6379", // Ensure Redis is running locally
 	})
 
 	r := mux.NewRouter()
