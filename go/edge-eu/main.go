@@ -18,7 +18,8 @@ var redisClient *redis.Client
 func main() {
 	// Initialize Redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: "redis-copy.railway.internal:6379", // Ensure Redis is running locally
+		Addr: "redis-copy.railway.internal:6379",
+		Password: "rLCBzTqNcJJJtTIRnzLPGnEsElMbvosI",
 	})
 
 	r := mux.NewRouter()
