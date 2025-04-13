@@ -70,8 +70,8 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Cache Miss: Fetch from Origin
-	// resp, err := http.Get("https://origin-production.up.railway.app/" + file)
-	resp, err := http.Get("http://localhost:9090/" + file)
+	resp, err := http.Get("https://origin-production.up.railway.app/" + file)
+	// resp, err := http.Get("http://localhost:9090/" + file)
 	if err != nil {
 		http.Error(w, "Origin Server Down", http.StatusInternalServerError)
 		return
