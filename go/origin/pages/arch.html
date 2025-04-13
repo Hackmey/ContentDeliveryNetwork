@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .header-subtitle {
+            color: wheat;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+        
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        .architecture-section {
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin: 1.5rem 0 1rem;
+            color: #3498db;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 1rem;
+        }
+        
+        .animation-container {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 2rem;
+            margin: 2rem 0;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flow-diagram {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: relative;
+        }
+        
+        .node {
+            width: 140px;
+            height: 140px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .node:hover {
+            transform: translateY(-5px);
+        }
+        
+        .node img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .node-label {
+            font-size: 14px;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .user {
+            background-color: #2ecc71;
+        }
+        
+        .cloudflare-dns {
+            background-color: #f39c12;
+        }
+        
+        .edge-server {
+            background-color: #3498db;
+        }
+        
+        .origin-server {
+            background-color: #e74c3c;
+        }
+        
+        .edge-server, .origin-server {
+            position: relative;
+            top: 0;
+        }
+        
+        .arrow {
+            position: absolute;
+            height: 4px;
+            background-color: #95a5a6;
+            z-index: 1;
+        }
+        
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -6px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 12px solid #95a5a6;
+        }
+        
+        .data-packet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            z-index: 10;
+            display: none;
+        }
+        
+        .request-packet {
+            background-color: #2ecc71;
+        }
+        
+        .response-packet {
+            background-color: #3498db;
+        }
+        
+        .cache-miss-packet {
+            background-color: #e74c3c;
+        }
+        
+        .step-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #bdc3c7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .step-dot.active {
+            background-color: #3498db;
+            transform: scale(1.3);
+        }
+        
+        .flow-description {
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: bold;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .home-btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .home-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .path-line {
+            position: absolute;
+            height: 3px;
+            background-color: #bdc3c7;
+            z-index: 1;
+        }
+        
+        .dashed-line {
+            background: linear-gradient(to right, #bdc3c7 50%, transparent 50%);
+            background-size: 20px 3px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" id="customHeader">
+        <h1 class="header-title">CDN Architecture</h1>
+        <p class="header-subtitle">Understanding the technical foundation of our CDN solution</p>
+        <p class="header-subtitle">{{.Header}}</p>
+
+    </header>
+    
+    <main class="content">
+        <section class="architecture-section">
+            <h1>CDN Architecture Overview</h1>
+            <p>Our Content Delivery Network (CDN) is built on a distributed architecture that ensures optimal performance, reliability, and scalability. We've implemented our solution using Railway app for origin and edge server deployment, with Cloudflare Wrangler providing custom DNS and additional network capabilities.</p>
+            
+            <div class="flow-description" id="flowDescription">
+                Click "Start Animation" to see the CDN request flow
+            </div>
+            
+            <div class="animation-container">
+                <div class="flow-diagram" id="flowDiagram">
+                    <div class="node user" id="userNode">
+                        User
+                        <div class="node-label">Request</div>
+                    </div>
+                    
+                    <div class="node cloudflare-dns" id="cloudflareNode">
+                        Cloudflare DNS
+                        <div class="node-label">Custom DNS</div>
+                    </div>
+                    
+                    <div class="node edge-server" id="edgeNode">
+                        Edge Server
+                        <div class="node-label">Railway App</div>
+                    </div>
+                    
+                    <div class="node origin-server" id="originNode">
+                        Origin Server
+                        <div class="node-label">Railway App</div>
+                    </div>
+                    
+                    <!-- Data Packets -->
+                    <div class="data-packet request-packet" id="requestPacket1"></div>
+                    <div class="data-packet request-packet" id="requestPacket2"></div>
+                    <div class="data-packet cache-miss-packet" id="cacheMissPacket"></div>
+                    <div class="data-packet response-packet" id="responsePacket1"></div>
+                    <div class="data-packet response-packet" id="responsePacket2"></div>
+                </div>
+                
+            </div>
+            
+            <h2>How Our CDN Works</h2>
+            <p>Our CDN implementation follows a simple but effective flow for content delivery:</p>
+            <ol style="margin-left: 2rem; margin-bottom: 1rem;">
+                <li><strong>User Request:</strong> When a user requests content from your website, the request is first sent to our CDN.</li>
+                <li><strong>Cloudflare DNS Resolution:</strong> Cloudflare Wrangler handles the DNS resolution and routes the request to the nearest edge server based on the user's location.</li>
+                <li><strong>Edge Server Check:</strong> The edge server, hosted on Railway app, checks if the requested content is already cached.</li>
+                <li><strong>Cache Hit:</strong> If the content is cached and valid, it's delivered directly to the user for optimal performance.</li>
+                <li><strong>Cache Miss:</strong> If the content isn't cached or has expired, the edge server retrieves it from the origin server (also on Railway app).</li>
+                <li><strong>Content Delivery:</strong> The edge server caches the new content and delivers it to the user.</li>
+            </ol>
+            
+            <h2>Core Components</h2>
+            <p><strong>Origin Server on Railway App:</strong> Our origin server is deployed on Railway's infrastructure, providing reliable and scalable hosting for your original content.</p>
+            
+            <p><strong>Cloudflare Wrangler Integration:</strong> We leverage Cloudflare Wrangler for custom DNS management, SSL certificate handling, and edge computing capabilities.</p>
+            
+            <p><strong>Distributed Edge Servers:</strong> Our edge servers are strategically deployed across multiple Railway app instances in key geographic regions to ensure content is served from the location closest to each user.</p>
+            
+            <h2>Advanced Features</h2>
+            <p><strong>Smart Caching:</strong> Intelligent caching policies with configurable TTL (Time-To-Live) settings and cache invalidation strategies to ensure content freshness.</p>
+            
+            <p><strong>Railway App Auto-scaling:</strong> Our origin and edge servers automatically scale based on traffic, ensuring optimal performance even during traffic spikes.</p>
+            
+            <p><strong>Cloudflare Workers:</strong> We utilize Cloudflare Workers for edge computing capabilities, allowing us to run lightweight code at the edge for tasks like image optimization and security checks.</p>
+        </section>
+        
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 CDN Project. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

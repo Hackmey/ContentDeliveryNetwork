@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -15,15 +16,19 @@ import (
 var ctx = context.Background()
 var redisClient *redis.Client
 
+type PageData struct {
+	Header string
+}
+
 func main() {
 	// Initialize Redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379", // Ensure Redis is running locally
+		Addr:     "redis-copy.railway.internal:6379",
+		Password: "rLCBzTqNcJJJtTIRnzLPGnEsElMbvosI",
 	})
 
 	r := mux.NewRouter()
-	r.HandleFunc("/content/{file}", serveContent).Methods("GET")
-	r.HandleFunc("/purge/{file}", purgeCache).Methods("POST")
+	r.HandleFunc("/{file}", serveContent).Methods("GET")
 
 	server := &http.Server{
 		Handler:      r,
@@ -32,7 +37,7 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	fmt.Println("CDN Edge Server running on port 8080")
+	fmt.Println("CDN Edge Server running on port 8090")
 	log.Fatal(server.ListenAndServe())
 }
 
@@ -42,14 +47,21 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	file := vars["file"]
 
 	// Check Redis Cache
+	start := time.Now()
 	content, err := redisClient.Get(ctx, file).Result()
 	if err == nil {
-		w.Write([]byte(content + " (from EU cache)"))
+		elapsed := time.Since(start).Microseconds()
+		tmpl := template.Must(template.ParseFiles("content"))
+		header := fmt.Sprintf("Fetched from EU server cache in %d ms", elapsed)
+		pageData := PageData{
+			Header: header,
+		}
+		tmpl.Execute(w, pageData)
 		return
 	}
 
 	// Cache Miss: Fetch from Origin
-	resp, err := http.Get("https://origin-production.up.railway.app/content/file" + file) // Using localhost for testing
+	resp, err := http.Get("https://origin-production.up.railway.app/" + file) // Using localhost for testing
 	if err != nil {
 		http.Error(w, "Origin Server Down", http.StatusInternalServerError)
 		return
@@ -58,17 +70,10 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := io.ReadAll(resp.Body)
 	content = string(body)
-	w.Write([]byte(content + " (from origin)"))
+	elapsed := time.Since(start).Microseconds()
+	header := fmt.Sprintf("Fetched from Origin Server in %d ms", elapsed)
+	template.Must(template.ParseFiles(content)).Execute(w, header)
 
 	// Store in cache
 	redisClient.Set(ctx, file, content, 10*time.Minute)
-}
-
-// Purge cache
-func purgeCache(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	file := vars["file"]
-
-	redisClient.Del(ctx, file)
-	w.Write([]byte("Cache Purged for " + file))
 }
