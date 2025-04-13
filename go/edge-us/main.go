@@ -28,7 +28,8 @@ func main() {
 	})
 
 	r := mux.NewRouter()
-	r.HandleFunc("/content/{file}", serveContent).Methods("GET")
+	r.HandleFunc("/", serveContent).Methods("GET")
+	r.HandleFunc("/{file}", serveContent).Methods("GET")
 
 	server := &http.Server{
 		Handler:      r,
@@ -39,6 +40,10 @@ func main() {
 
 	fmt.Println("CDN Edge Server running on port 8080")
 	log.Fatal(server.ListenAndServe())
+}
+
+func redir(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
 
 func serveContent(w http.ResponseWriter, r *http.Request) {
