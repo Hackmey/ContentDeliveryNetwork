@@ -54,19 +54,25 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 	// Check Redis Cache
 	start := time.Now()
 	content, err := redisClient.Get(ctx, file).Result()
+	elapsed := time.Since(start).Microseconds()
+
+	header := fmt.Sprintf("Fetched from EU server cache in %d µs", elapsed)
+	pageData := PageData{Header: header}
+
 	if err == nil {
-		elapsed := time.Since(start).Microseconds()
-		tmpl := template.Must(template.ParseFiles("content"))
-		header := fmt.Sprintf("Fetched from EU server cache in %d ms", elapsed)
-		pageData := PageData{
-			Header: header,
+		// Parse the cached template string
+		tmpl, err := template.New("cached").Parse(content)
+		if err != nil {
+			http.Error(w, "Template Parse Error", http.StatusInternalServerError)
+			return
 		}
 		tmpl.Execute(w, pageData)
 		return
 	}
 
 	// Cache Miss: Fetch from Origin
-	resp, err := http.Get("https://origin-production.up.railway.app/" + file) // Using localhost for testing
+	// resp, err := http.Get("https://origin-production.up.railway.app/" + file)
+	resp, err := http.Get("http://localhost:9090/" + file)
 	if err != nil {
 		http.Error(w, "Origin Server Down", http.StatusInternalServerError)
 		return
@@ -75,10 +81,18 @@ func serveContent(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := io.ReadAll(resp.Body)
 	content = string(body)
-	elapsed := time.Since(start).Microseconds()
-	header := fmt.Sprintf("Fetched from Origin Server in %d ms", elapsed)
-	template.Must(template.ParseFiles(content)).Execute(w, header)
 
-	// Store in cache
+	header = fmt.Sprintf("Fetched from Origin Server in %d µs", elapsed)
+	pageData = PageData{Header: header}
+
+	// Parse the fetched HTML
+	tmpl, err := template.New("origin").Parse(content)
+	if err != nil {
+		http.Error(w, "Origin Template Parse Error", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, pageData)
+
+	// Store in Redis cache
 	redisClient.Set(ctx, file, content, 10*time.Minute)
 }

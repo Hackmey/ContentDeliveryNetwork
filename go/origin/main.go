@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -30,23 +29,12 @@ func redir(w http.ResponseWriter, r *http.Request) {
 
 func serveMain(w http.ResponseWriter, r *http.Request) {
 
-	tmpl := template.Must(template.ParseFiles("pages/main.html"))
-	pageData := PageData{
-		Header: "",
-	}
-	tmpl.Execute(w, pageData)
+	http.ServeFile(w, r, "pages/main.html")
 }
 func serveArchitecture(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("pages/arch.html"))
-	pageData := PageData{
-		Header: "",
-	}
-	tmpl.Execute(w, pageData)
+	http.ServeFile(w, r, "pages/arch.html")
 }
 func serveDetails(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("pages/desc.html"))
-	pageData := PageData{
-		Header: "",
-	}
-	tmpl.Execute(w, pageData)
+	http.ServeFile(w, r, "pages/desc.html")
+
 }
