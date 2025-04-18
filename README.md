@@ -31,6 +31,42 @@ This CDN implementation enhances website performance by:
 | **US**   | 8080 | - Redis caching<br>- Latency monitoring<br>- Auto-redirect from `/` |
 | **EU**   | 8090 | - Cache synchronization<br>- TTL management (10min)<br>- Request metrics |
 
+## Getting Started
+
+### Prerequisites
+- Install [Go](https://go.dev/doc/install) (v1.21+)
+- Install [Redis](https://redis.io/docs/getting-started/) (v7.0+)
+- Install [Docker](https://docs.docker.com/get-docker/) (v24.0+)
+
+### Installation
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/JasminPradhan/ContentDeliveryNetwork.git
+    cd ContentDeliveryNetwork
+    ```
+
+2. Start the origin server:
+    ```bash
+    go run origin/main.go
+    ```
+
+3. Start the edge servers:
+    ```bash
+    cd edge-eu
+    docker build -t cdn-edge-eu .
+    docker run -p 8080:8090 cdn-edge-eu
+    ```
+    ```bash
+    cd edge-us
+    docker build -t cdn-edge-us .
+    docker run -p 8060:8080 cdn-edge-us
+    ```
+
+4. Access the CDN:
+    - US Edge Server: `http://localhost:8080`
+    - EU Edge Server: `http://localhost:8090`
+
+
 ## System Architecture
 
 ```mermaid
