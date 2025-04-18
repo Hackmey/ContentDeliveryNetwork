@@ -76,3 +76,17 @@ graph TD
     Edge -->|Cache Miss| Origin
     Origin -->|Content + Headers| Edge
     Edge -->|Cache & Deliver| User
+
+```
+
+## Demonstration
+
+### Cache-Aware Delivery System
+- **Automatic Source Selection**: 
+  ```http
+  GET /main.html HTTP/1.1
+  X-Cache-Status: hit (US Edge) | miss (Origin)
+```
+
+
+###
